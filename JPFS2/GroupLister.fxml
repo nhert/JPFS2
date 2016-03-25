@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="289.0" prefWidth="269.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="testjxse.GUI_Control_GroupLister">
+   <children>
+      <ListView fx:id="GroupList" layoutX="4.0" layoutY="49.0" prefHeight="236.0" prefWidth="261.0" />
+      <Label layoutX="61.0" layoutY="5.0" text="Private Subgroups">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="81.0" layoutY="32.0" text="Double Click to Join" textFill="#0090ff" />
+   </children>
+</Pane>

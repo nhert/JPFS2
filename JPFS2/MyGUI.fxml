@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.canvas.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="391.0" prefWidth="440.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="testjxse.GUI_Control">
+   <children>
+      <Label layoutX="78.0" layoutY="64.0" text="Group Peers" />
+      <Label layoutX="253.0" layoutY="64.0" text="File List" />
+      <Button fx:id="DownloadButton" layoutX="297.0" layoutY="321.0" mnemonicParsing="false" text="Download" />
+      <Label layoutX="292.0" layoutY="298.0" text="File Operations" />
+      <Button fx:id="ShareButton" layoutX="262.0" layoutY="354.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="70.0" text="Share" />
+      <Button id="DiscoverButton" fx:id="DiscoverButton" layoutX="62.0" layoutY="286.0" mnemonicParsing="false" text="Manual Refresh" />
+      <ListView id="PeerBox" fx:id="PeerBox" layoutX="9.0" layoutY="81.0" prefHeight="200.0" prefWidth="200.0" />
+      <ListView fx:id="FileBox" layoutX="232.0" layoutY="81.0" prefHeight="200.0" prefWidth="200.0" />
+      <Button fx:id="UnshareButton" layoutX="332.0" layoutY="354.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="70.0" text="Un-Share" />
+      <MenuBar id="MenuID" layoutY="2.0" prefHeight="25.0" prefWidth="450.0">
+        <menus>
+          <Menu id="SubMenuID" mnemonicParsing="false" text="Menu">
+            <items>
+              <MenuItem id="AboutMenu" fx:id="AboutMenu" mnemonicParsing="false" text="About" />
+                  <MenuItem id="HelpMenu" fx:id="HelpMenu" mnemonicParsing="false" text="Help" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <ChoiceBox fx:id="SortPicker" layoutX="304.0" layoutY="52.0" prefHeight="17.0" prefWidth="127.0" />
+      <Label layoutX="337.0" layoutY="35.0" text="File Sorting" />
+   </children>
+</Pane>
