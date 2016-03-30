@@ -29,7 +29,6 @@ public class GUI_Control_ApplicationLevel {
         
         if(but!=null){
           but.setOnAction(new EventHandler<ActionEvent>() {
-
               @Override
               public void handle(ActionEvent event) {
               	  System.out.println("Manual Peer Refresh");
@@ -65,28 +64,21 @@ public class GUI_Control_ApplicationLevel {
 	}
 	
 	public static void updateGUIForced(){ // updates GUI on interval with discovered peers
-	      
-		  List<String> PeersList = new ArrayList<String>();
-		  ObservableList<String> Peers;
-			//System.out.println("Updated GUI");
-			PeersList.clear();
-      	String[] peers = manager.getPeers();
-      	PeersList = new ArrayList<String>();
-      	if(peers!=null){
-			  for(int x = 0; x<manager.getLen(); x++){
-			  	PeersList.add(peers[x]);
-			  }
-      	}
-			Peers = FXCollections.observableList(PeersList);
-			try{
-			  peerList.setItems(Peers);
-			} catch (Exception e){
-				System.out.println("Exception in UPDATING GUI");
+		List<String> peers = manager.getPeers();
+		for(int x = 0; x<peers.size(); x++){ // first it adds any peers that aren't already in the list
+			if(!GUI_Control.Peers.contains(peers.get(x))){
+				GUI_Control.Peers.add(peers.get(x));
 			}
+		}
+		for(int x = 0; x<GUI_Control.Peers.size(); x++){ // then it deletes any peers in the list that aren't in the store of peers
+			if(!peers.contains(GUI_Control.Peers.get(x))){
+				GUI_Control.Peers.remove(x);
+			}
+		}
 	}
 	
 	 public static void forceFileListUpdate(){
-    	 GUI_Control.forceFileListUpdate(peerList.getSelectionModel().getSelectedIndex());
+    	 GUI_Control.forceFileListUpdate(peerList.getSelectionModel().getSelectedItem());
      }
 	
 	

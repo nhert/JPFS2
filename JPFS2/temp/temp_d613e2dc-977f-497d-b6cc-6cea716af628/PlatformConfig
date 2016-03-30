@@ -3,10 +3,10 @@
 <jxta:CP type="jxta:PlatformConfig" xmlns:jxta="http://jxta.org">
 	
 	<PID>
-		urn:jxta:cbid-59616261646162614A787461503250335CF600BBB3336E58AECB96D1009A215303
+		urn:jxta:cbid-59616261646162614A78746150325033B14BCA42E03DA5A2997F188F79E9848D03
 	</PID>
 	<Name>
-		Nate2-PC (ID: 60c6719d)
+		temp_d613e2dc-977f-497d-b6cc-6cea716af628
 	</Name>
 	<Desc>
 		Created by NetworkManager

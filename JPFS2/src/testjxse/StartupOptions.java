@@ -8,26 +8,19 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 
 import javax.swing.JOptionPane;
 
+import testjxse.JPFSPrinting.errorLevel;
 import net.jxta.discovery.DiscoveryEvent;
 import net.jxta.discovery.DiscoveryListener;
 import net.jxta.discovery.DiscoveryService;
 import net.jxta.document.Advertisement;
-import net.jxta.endpoint.EndpointAddress;
-import net.jxta.endpoint.EndpointListener;
-import net.jxta.endpoint.EndpointService;
-import net.jxta.endpoint.Message;
-import net.jxta.exception.PeerGroupException;
 import net.jxta.id.IDFactory;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.peergroup.PeerGroupID;
@@ -35,7 +28,6 @@ import net.jxta.platform.NetworkManager;
 import net.jxta.protocol.DiscoveryResponseMsg;
 import net.jxta.protocol.ModuleImplAdvertisement;
 import net.jxta.protocol.PeerGroupAdvertisement;
-import net.jxta.protocol.PipeAdvertisement;
 
 public class StartupOptions implements DiscoveryListener{
 	public PeerGroup initGroup;
@@ -44,14 +36,9 @@ public class StartupOptions implements DiscoveryListener{
 	private String clientName;
 	public  ModuleImplAdvertisement customGroup;
 	public PeerGroup customGroupInstance;
-	private String PName;
 	private File gLister;
-	
-	
-	private static boolean freezeUntilDone = true;
 	public static List<String> GroupsDiscovered;
-	public static Map<String, PeerGroupID> GroupInfos;
-	
+	public static Map<String, groupContents> GroupInfos;
 	public static Thread gloop;
 	private static DiscoveryService discovery;
 	static NetworkManager NetManager;
@@ -60,7 +47,25 @@ public class StartupOptions implements DiscoveryListener{
 	
 	StartupOptions(){
 		GroupsDiscovered = new ArrayList<String>();
-		GroupInfos = new HashMap<String,PeerGroupID>();
+		GroupInfos = new HashMap<String,groupContents>();
+	}
+	
+	public class groupContents{
+		public String creator;
+		public boolean pwordProtected;
+		public PeerGroupID pgid;
+		public String hashedPassword;
+		groupContents(String c, boolean pw, PeerGroupID id){
+			creator = c;
+			pwordProtected = pw;
+			pgid = id;
+		}
+		groupContents(String c, boolean pw, PeerGroupID id, String hp){
+			creator = c;
+			pwordProtected = pw;
+			pgid = id;
+			hashedPassword = hp;
+		}
 	}
 	
 	public void StartOptions() throws Exception{
@@ -85,9 +90,9 @@ public class StartupOptions implements DiscoveryListener{
 			    if (!theName.equals("") && theName!=null)
 			    	break;
 			    System.out.println("Illegal Group Name, Please Retry");*/
+			
 				gLister = new File("./GroupLister.fxml");
 				initGListStage();
-				System.out.println("END OF SUB OPS BLOCK");
 				
 				//join global group but dont publish yourself
 				String tName = "temp_"+UUID.randomUUID().toString();
@@ -96,14 +101,8 @@ public class StartupOptions implements DiscoveryListener{
 				global = NetManager.startNetwork();
 				
 				ModuleImplAdvertisement customIMPL = global.getAllPurposePeerGroupImplAdvertisement();
-				if(customIMPL == null || global == null){
-					System.out.println("NULL IMPL");
-				}else{
-					System.out.println("NOT NULL IMPL");
-				}
 				PeerGroup privateGroupPublisher = global.newGroup(IDFactory.newPeerGroupID("PrivateGroupPublisher".getBytes()), customIMPL, "PrivateGroupPublisher", "Private Group Publishing", false);
 				privateGroupPublisher.startApp(new String[0]);
-				
 				
 				discovery = privateGroupPublisher.getDiscoveryService();
 				discovery.addDiscoveryListener(this);
@@ -118,9 +117,19 @@ public class StartupOptions implements DiscoveryListener{
 			
 			String descrip = JOptionPane.showInputDialog("Input a Small Description of Group", null);
 			
+			int yesno = JOptionPane.showConfirmDialog(null, "Would you like to set a password?");
+			System.out.println("yesno: "+yesno);
+			String pword;
+			if(yesno == 0){
+				System.out.println("Creating Password Protected Group");
+				pword = JOptionPane.showInputDialog(null, "Input a Password: ");
+				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, true, pword);
+			}else{
+				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, false, "");
+			}
 			
 			
-			StartupP2PApp.StartMainCustom(newGroupName, true, descrip);
+			
 		}
 		
 		
@@ -128,8 +137,6 @@ public class StartupOptions implements DiscoveryListener{
 	}
 	
 	  public void discoveryEvent(DiscoveryEvent TheDiscoveryEvent) {
-	      // Who triggered the event?
-		  //System.out.println("DISC EVENT FROM STARTUP OPS");
 	      DiscoveryResponseMsg TheDiscoveryResponseMsg = TheDiscoveryEvent.getResponse();
 	      Enumeration<Advertisement> en = TheDiscoveryResponseMsg.getAdvertisements();
 	      Object theGroup = TheDiscoveryEvent.getSource();
@@ -140,29 +147,37 @@ public class StartupOptions implements DiscoveryListener{
 	          while (en.hasMoreElements()) {
 	        	  try{
 	        	  Advertisement ad = en.nextElement();
-	        	  //System.out.println("Received Type: " + ad.getAdvType().toString());
 	        	  if(ad.getAdvType() == PeerGroupAdvertisement.getAdvertisementType()){
-	                  //System.out.println("FOUND A PEER GROUP ADVERT!: " + ad.getID());
 	                  PeerGroupAdvertisement pga = (PeerGroupAdvertisement)ad;
-	                  //System.out.println("Found: " + pga.getDescription());
-	                  if(!GroupsDiscovered.contains(pga.getDescription())){
-	                	  GroupsDiscovered.add(pga.getDescription());
-	                	  //System.out.println("PGID: "+pga.getPeerGroupID());
-	                	  GroupInfos.put(pga.getDescription(), pga.getPeerGroupID());
+	                  String gname = pga.getDescription().split("&%")[0];
+	                  String creator = pga.getDescription().split("&%")[1];
+	                  boolean pwordUsed = Boolean.parseBoolean(pga.getDescription().split("&%")[2]);
+	                  if(pwordUsed){
+	                	  String hashedPassword = pga.getDescription().split("&%")[3];
+	                	  if(!GroupsDiscovered.contains(gname)){
+		                	  GroupsDiscovered.add(gname);
+		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), hashedPassword));
+		                  }
+	                  }else{
+	                	  if(!GroupsDiscovered.contains(gname)){
+		                	  GroupsDiscovered.add(gname);
+		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID()));
+		                  }
 	                  }
+	                 
 	        	  }
 	        	  }catch(Throwable a){
-	        		  a.printStackTrace();
+	        		  JPFSPrinting.logError("Throwable Error in the StartupOptions discovery thread", errorLevel.RECOVERABLE);
 	        	  }
 	          }
 	      }
-	      
 	  }
 	  
 	 
 
 	public void initGListStage() throws MalformedURLException, IOException {
 		Pane page = (Pane) FXMLLoader.load(gLister.toURI().toURL());
+		@SuppressWarnings("unused")
 		GUI_Control_GroupListerHelper GUICGLH = new GUI_Control_GroupListerHelper (page);
 		Scene scene = new Scene(page);
         StartupP2PApp.primaryStage.setScene(scene);
@@ -179,7 +194,7 @@ public class StartupOptions implements DiscoveryListener{
 					Thread.sleep(1000);
 					GUI_Control_GroupLister.doRefresh();
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					JPFSPrinting.logError("Sleep method interrupted in StartupOptions GroupLoop Thread", errorLevel.CAN_IGNORE);
 				}
 			}
 		}
@@ -196,13 +211,15 @@ public class StartupOptions implements DiscoveryListener{
 	                  discovery.getRemoteAdvertisements(null, DiscoveryService.GROUP, "Name", "GroupADV", 1, null);
 	            	}
 	            	else
-	            	  System.out.println("Discovery Did not Get Initialized");
+	            	JPFSPrinting.logWarning("Discovery wasn't ready to search for advertisements, trying again");
 	            	
 	                Thread.sleep(500);
 	              
-	            	} catch(InterruptedException e) {} 
+	            	} catch(InterruptedException e) {
+	            		JPFSPrinting.logError("Sleep method interrupted in StartupOptions fetch advertisements Thread", errorLevel.CAN_IGNORE);
+	            	} 
 	                catch(IllegalStateException e) {
-	            		System.out.println("The Discovery Thread is being Skipped: Thread not Ready!");
+	                	JPFSPrinting.logError("Discovery was not properly intialized in StartupOptions", errorLevel.RECOVERABLE);
 	            	}
 	            }
 	         }

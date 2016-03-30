@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import testjxse.JPFSPrinting.errorLevel;
+
 public class ChecksumUtil {
 	//calculates the checksum for a file
 	private static byte[] calcChecksum(String fname){
@@ -28,11 +30,11 @@ public class ChecksumUtil {
 			is.close();
 			return md5.digest();
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("No Such Algorithm EX: ChecksumUtil calc method", errorLevel.RECOVERABLE);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("File not Found EX: ChecksumUtil calc method", errorLevel.RECOVERABLE);
 		} catch (IOException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("IO EX: ChecksumUtil calc method", errorLevel.RECOVERABLE);
 		}
 	    return null;
 	}

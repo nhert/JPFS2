@@ -3,6 +3,7 @@ package testjxse;
 import java.util.ArrayList;
 import java.util.List;
 
+import testjxse.JPFSPrinting.errorLevel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,7 +36,7 @@ public class GUI_Control_GroupListerHelper {
 				try{
 				  groupLister.setItems(groups);
 				} catch (Exception e){
-					System.out.println("Exception in UPDATING GUI");
+					JPFSPrinting.logError("Error when refreshing the GUI in the GroupList Control Helper", errorLevel.RECOVERABLE);
 				}
 		});
 	}

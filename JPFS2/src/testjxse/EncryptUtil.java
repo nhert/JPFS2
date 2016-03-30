@@ -2,7 +2,10 @@ package testjxse;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.*;
+
 import org.apache.commons.codec.binary.Base64;
+
+import testjxse.JPFSPrinting.errorLevel;
 
 public class EncryptUtil {
 
@@ -19,7 +22,7 @@ public class EncryptUtil {
 			//System.out.println("JPFS2 - EncryptUtil - Encrypted String: " + Base64.encodeBase64String(encryptedValue));
 			return Base64.encodeBase64(encryptedValue);
 		}catch (Exception ex){
-			ex.printStackTrace();
+			JPFSPrinting.logError("General Exception: EncryptUtil encryption method", errorLevel.RECOVERABLE);
 		}
 		return null;
 	}
@@ -36,7 +39,7 @@ public class EncryptUtil {
 			
 			return decrypted;
 		}catch(Exception ex){
-			ex.printStackTrace();
+			JPFSPrinting.logError("General Exception: EncrypUtil decryption method", errorLevel.RECOVERABLE);
 		}
 		return null;
 	}

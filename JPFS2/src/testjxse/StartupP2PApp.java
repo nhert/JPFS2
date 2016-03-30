@@ -3,26 +3,20 @@ package testjxse;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import testjxse.JPFSPrinting.errorLevel;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 
 //IDEA
 //create administrated p groups with admin priv. on the host
-//non admin cant start the group
+//non admin cant start the group, just join
 
 public class StartupP2PApp extends Application{
 	
@@ -49,22 +43,16 @@ public class StartupP2PApp extends Application{
 	public void start(Stage pStage) throws Exception {
         try {
         	primaryStage = pStage;
-        	
         	File tempDir = new File(".\\temp");
         	tempDir.mkdir();
         	File jProfsDir = new File(".\\Profiles");
         	jProfsDir.mkdir();
         	File dlDir = new File(".\\JPFSDownloads");
         	dlDir.mkdir();
-        	
-        	
-        	
         	op = new StartupOptions();
         	op.StartOptions();
-            
-            
         } catch (Exception ex) {
-            Logger.getLogger(StartupP2PApp.class.getName()).log(Level.SEVERE, null, ex);
+        	JPFSPrinting.logError("Exception in initializing StartupOptions in StartupP2PApp", errorLevel.SEVERE);
         }
 	}
 	
@@ -77,31 +65,34 @@ public class StartupP2PApp extends Application{
         //start the manager advertisement discovery thread
         info.fetch_advertisements();
         //start the manager timeout checker thread
-        info.check_timeouts();
+       
         //start thread that auto-refreshes the peer list
         Thread pLoop = new Thread(new peerLoop());
         pLoop.start();
+        GUI_Control.doRefresh();
 	}
 	
-	public static void StartMainCustom(String gname, boolean creating, String desc) throws MalformedURLException, IOException{
+	public static void StartMainCustom(String gname, boolean creating, String desc, boolean pwordGroup, String pword) throws MalformedURLException, IOException{
 		initMainStage();
 		//initialize the manager
-        info.initCustom(AppName, gname, creating, desc);
+        info.initCustom(AppName, gname, creating, desc, pwordGroup, pword);
         //display GUI
         primaryStage.show();
         //start the manager advertisement discovery thread
         info.fetch_advertisements();
         //start the manager timeout checker thread
-        info.check_timeouts();
+    
         //start thread that auto-refreshes the peer list
         Thread pLoop = new Thread(new peerLoop());
         pLoop.start();
+        GUI_Control.doRefresh();
 	}
 	
 	public static void initMainStage() throws MalformedURLException, IOException{
 		File mainGUI = new File("./MyGUI.fxml");
     	Pane page = (Pane) FXMLLoader.load(mainGUI.toURI().toURL());
-    	GUI_Control_ApplicationLevel GUICAL = new GUI_Control_ApplicationLevel(info, page);
+    	@SuppressWarnings("unused")
+		GUI_Control_ApplicationLevel GUICAL = new GUI_Control_ApplicationLevel(info, page);
     	Scene scene = new Scene(page);
         primaryStage.setScene(scene);
         primaryStage.setTitle(AppName);
@@ -114,13 +105,11 @@ public class StartupP2PApp extends Application{
 				try {
 					Thread.sleep(1000);
 					GUI_Control.doRefresh();
-					//System.out.println("Checking for New Peers");
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					JPFSPrinting.logError("Sleep method interrupted in StartupP2PApp peerLoop thread", errorLevel.CAN_IGNORE);
 				}
 			}
 		}
-	
 	}
 	
 	

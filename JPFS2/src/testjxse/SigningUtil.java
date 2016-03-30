@@ -8,6 +8,8 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import testjxse.JPFSPrinting.errorLevel;
+
 public class SigningUtil {
 	
 	
@@ -24,11 +26,11 @@ public class SigningUtil {
 			SignedContents sc = new SignedContents(kPair.getPublic(), signed);
 			return sc;
 		} catch (InvalidKeyException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("Invalid Key Exception: SigningUtil signData method", errorLevel.RECOVERABLE);
 		} catch (SignatureException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("Signature Exception: SigningUtil signData method", errorLevel.RECOVERABLE);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			JPFSPrinting.logError("Algorithm Not Found Exception: SigningUtil signData method", errorLevel.RECOVERABLE);
 		}
 		return null;
 	}
