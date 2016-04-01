@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -18,6 +19,7 @@ public class GUI_Control_ApplicationLevel {
 	private static ListView<String> peerList;
 	private static ListView<String> fileList;
 	private static Button but; 
+	private static Label gLabel;
 
 	@SuppressWarnings("unchecked")
 	GUI_Control_ApplicationLevel(P2PManager m, Pane GUI){
@@ -26,6 +28,7 @@ public class GUI_Control_ApplicationLevel {
 		peerList = (ListView<String>) GUI.lookup("#PeerBox");
 		fileList = (ListView<String>) GUI.lookup("#FileBox");
         but = (Button) GUI.lookup("#DiscoverButton");
+        gLabel = (Label) GUI.lookup("#GroupLabel");
         
         if(but!=null){
           but.setOnAction(new EventHandler<ActionEvent>() {
@@ -80,6 +83,10 @@ public class GUI_Control_ApplicationLevel {
 	 public static void forceFileListUpdate(){
     	 GUI_Control.forceFileListUpdate(peerList.getSelectionModel().getSelectedItem());
      }
+	 
+	 public static void setGroupLabel(String label){
+			gLabel.setText(label);
+	}
 	
 	
 	

@@ -9,7 +9,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 public class HashingUtil {
-	private static byte[] salt = "ZJE7TN5HD81JE895".getBytes(); // random salt value for JPFS
+	private static byte[] salt = "ZJE7TN5HD81JE895".getBytes(); // unique random salt value for JPFS client. all clients share salt value
 	
 	public static String hash(char[] input){
 		KeySpec spec = new PBEKeySpec(input, salt, 65536, 128);

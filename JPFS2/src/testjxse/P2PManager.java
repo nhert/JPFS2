@@ -54,6 +54,7 @@ import java.security.SignatureException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -89,9 +90,10 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
   private InputPipe myInput = null;
   private static volatile Map<Object,OutputPipe> peers = new Hashtable<Object,OutputPipe>(); // return output pipes from urns
   private static List<Object> urns = new ArrayList<Object>(); // store an array of found peer urns (for iteration)
-  private static Map<String,Object> resolver = new Hashtable<String,Object>(); // resolve peer names to their urns
+  private static Map<String,Object> resolver = new HashMap<String,Object>(); // resolve peer names to their urns
   private static List<String> pnames = new ArrayList<String>(); // store an array of found peer names (for GUI)
   private static volatile Map<String, Thread> timeouts = new Hashtable<String, Thread>(); // holds the kill threads for timeouts
+  private static Map<String, String> peerCodes = new HashMap<String,String>(); // maps peer names to a peer "code" which identifies them for validation
   private Object timeoutLock = new Object();
   private Object foundPeer;
   private String foundPeerN;
@@ -105,12 +107,13 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
   private static String eVector = "InitializeVector"; // 16-Bit Init Vector for Demonstration Purposes.
   
   public enum reqType{
-	  FILEREQ, FILERES, FILELIST, PINGREQ, PINGRES, FILEINFOREQ, FILEINFORES, SORTREQ, DELETENOTIFICATION
+	  FILEREQ, FILERES, FILELIST, PINGREQ, PINGRES, FILEINFOREQ, FILEINFORES, SORTREQ, DELETENOTIFICATION, PEERCODE, VALIDATEREQ, VALIDATERES
   }
   
   public void initGlobal(String n){
 	  try{
 		  System.out.println("Initializing JPFS Client");
+		  GUI_Control_ApplicationLevel.setGroupLabel("Peers of Global Lobby");
 		  CliName = n; // the clients name "J_PFS"
 		  String id = UUID.randomUUID().toString().substring(0, 8);
           PName = getCompName() + " (ID: "+ id + ")"; // the host name is this users peer name + random int id for uniqueness
@@ -127,7 +130,7 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
           NetworkManager.RecursiveDelete(ConfigurationFile);
           
 		  NetManager = new NetworkManager(NetworkManager.ConfigMode.ADHOC, PName, ConfigurationFile.toURI()); // create a new network manager object for this client
-		  
+		 
 		  PopInformationMessage(CliName, "Starting the Network"); // inform user that basic setup is complete
 		  PGroup = NetManager.startNetwork();
 		  
@@ -166,6 +169,7 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
   public void initCustom(String n, String GroupName, boolean Creator, String desc, boolean pwordGroup, String pword){
 	  try{
 	  System.out.println("Initializing JPFS Client");
+	  GUI_Control_ApplicationLevel.setGroupLabel("Peers of " + GroupName);
 	  CliName = n; // the clients name "J_PFS"
 	  String id = UUID.randomUUID().toString().substring(0, 8);
       PName = getCompName() + " (ID: "+id + ")"; // the host name is this users peer name + random int id for uniqueness
@@ -190,7 +194,6 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
 	  ModuleImplAdvertisement customGroup = PGroup.getAllPurposePeerGroupImplAdvertisement();
 	  
 	  PeerGroup customGroupInstance = PGroup.newGroup(IDFactory.newPeerGroupID(GroupName.getBytes()), customGroup, GroupName, desc, false);
-	  System.out.println(customGroupInstance.getPeerGroupName());
 	
 	  //Check to see if client successfully joined the peergroup
       if (Module.START_OK != customGroupInstance.startApp(new String[0])){
@@ -218,9 +221,9 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
     	  PeerGroupAdvertisement myPG = null;
     	  
     	  if(pwordGroup){
-    		  myPG = newPGroupAdvertisement(customGroupInstance.getPeerGroupID(), GroupName, privateGroupPublisher.getAllPurposePeerGroupImplAdvertisement().getModuleSpecID(), PName, pwordGroup, pword);
+    		  myPG = newPGroupAdvertisement(customGroupInstance.getPeerGroupID(), GroupName, privateGroupPublisher.getAllPurposePeerGroupImplAdvertisement().getModuleSpecID(), PName, desc, pwordGroup, pword);
     	  }else{
-    		  myPG = newPGroupAdvertisement(customGroupInstance.getPeerGroupID(), GroupName, privateGroupPublisher.getAllPurposePeerGroupImplAdvertisement().getModuleSpecID(), PName, pwordGroup, "");
+    		  myPG = newPGroupAdvertisement(customGroupInstance.getPeerGroupID(), GroupName, privateGroupPublisher.getAllPurposePeerGroupImplAdvertisement().getModuleSpecID(), PName, desc, pwordGroup, "");
     	  }
     	  globalPublisher.publish(myPG);
     	  globalPublisher.remotePublish(myPG);
@@ -256,18 +259,16 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
       return advertisement;
   }
   
-  private static PeerGroupAdvertisement newPGroupAdvertisement(PeerGroupID id, String gname, ModuleSpecID msid, String creator, boolean usePassword, String password) {
+  private static PeerGroupAdvertisement newPGroupAdvertisement(PeerGroupID id, String gname, ModuleSpecID msid, String creator, String desc ,boolean usePassword, String password) {
 	  PeerGroupAdvertisement advertisement = (PeerGroupAdvertisement)
 	  AdvertisementFactory.newAdvertisement(PeerGroupAdvertisement.getAdvertisementType());
 	  
 	  advertisement.setPeerGroupID(id);
 	  
 	  if(usePassword){
-		  System.out.println("PASSWORD GROUP GENERATED IN P2PMANAGER ADV CREATOR " + usePassword);
-		  advertisement.setDescription(gname+"&%"+creator+"&%"+true+"&%"+HashingUtil.hash(password.toCharArray()));
-		  System.out.println(advertisement.getDescription());
+		  advertisement.setDescription(gname+"&%"+creator+"&%"+desc+"&%"+true+"&%"+HashingUtil.hash(password.toCharArray()));
 	  }else{
-		  advertisement.setDescription(gname+"&%"+creator+"&%"+false);
+		  advertisement.setDescription(gname+"&%"+creator+"&%"+desc+"&%"+false);
 	  }
 	  
 	  advertisement.setName("GroupADV");
@@ -277,7 +278,7 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
   }
   
   //method to close this client, letting other peers know of the disconnection
-  void close(String n){
+  public void close(String n){
 	  PopInformationMessage(n, "Stopping JXTA network ... \nPress 'OK'");
 	  String empty = "empty";
 	  for(int x = 0; x<urns.size(); x++){
@@ -297,25 +298,14 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
 		  JPFSPrinting.logError("Interrupted Exception in shutdown Thread", errorLevel.CAN_IGNORE);
 	  }
 	  PopInformationMessage(CliName, "Shutting Down Client ... \nPress 'OK'");
-	  ConfigurationFile.delete();
-	  NetManager.stopNetwork();
-	  delConfig();
+	  if(ConfigurationFile!=null && NetManager!=null){
+		  ConfigurationFile.delete();
+		  NetManager.stopNetwork();
+		  delConfig();
+	  }
   }
   
-  //ALGORITHM FOR SHARING FILES NOW
-  //run through your peers one by one
-  //nested inside the outer loop, is a loop that runs through the file list for you
-  //if the file contains the outer peer in its permission list, then add it to the packed files string
-  //send the file list to the peer, then move on to the next iteration
   public static void transmitUpdateFiles(){ // send a message to all peers with new list of files!
-	  /*for(int x = 0; x<urns.size(); x++){
-		try {
-			sendData(peers.get(urns.get(x)),reqType.FILELIST,Files.getBytes("ISO-8859-1"), "", false, null);
-		} catch (UnsupportedEncodingException e) {
-			JPFSPrinting.logError("Byte Encoding failed in transmit update files method", errorLevel.RECOVERABLE);
-		}
-	  }*/
-	  //prototype code
 	      for(String peer : pnames){
 		  if(!peer.contains(PName)){//if we are not looking at ourselves
 			  String fileList = GUI_Control.packFiles(peer);
@@ -330,19 +320,21 @@ public class P2PManager implements DiscoveryListener, PipeMsgListener, OutputPip
   }
   
   public static void transmitUpdateFiles(String peer, OutputPipe location){ // send a message to a single peer with new list of files!
-	  /*for(int x = 0; x<urns.size(); x++){
-		try {
-			sendData(location,reqType.FILELIST,Files.getBytes("ISO-8859-1"),"", false, null);
-		} catch (UnsupportedEncodingException e) {
-			JPFSPrinting.logError("Byte Encoding failed in transmit update files method", errorLevel.RECOVERABLE);
-		}
-	  }*/
 			  String fileList = GUI_Control.packFiles(peer);
 			  try {
-				  sendData(peers.get(resolver.get(peer)),reqType.FILELIST,fileList.getBytes("ISO-8859-1"), "", false, null);
+				  sendData(location,reqType.FILELIST,fileList.getBytes("ISO-8859-1"), "", false, null);
 			  } catch (UnsupportedEncodingException e) {
 				  JPFSPrinting.logError("Byte Encoding failed in transmit update files method", errorLevel.RECOVERABLE);
 			  }
+  }
+  
+  public static void transmitMyPeerCode(OutputPipe loc){
+	  try{
+		  System.out.println("Sending my peer code");
+		  sendData(loc, reqType.PEERCODE, PeerCode.MyHashedCode().getBytes("ISO-8859-1"), "", false, null);
+	  }catch (UnsupportedEncodingException e) {
+		  JPFSPrinting.logError("Byte Encoding failed in transmit peer code method", errorLevel.RECOVERABLE);
+	  }
   }
   
   
@@ -642,6 +634,7 @@ private static void sendData(OutputPipe target, reqType req, byte[] input, Strin
 	  }else if(r==reqType.PINGREQ){ // we got a ping request for timeouts, so just ping them back
 		  sendData(peers.get(resolver.get(peerOrigin)),reqType.PINGRES,"PING".getBytes(), "PING", false, null); // send the byte array to the client
 	  }else if(r==reqType.PINGRES){ // we got a ping response, stop the corresp. kill thread
+		  synchronized(timeoutLock){
 		  System.out.println("PEER PING REQUEST RECEIVED FROM "+peerOrigin);
 		  System.out.println("My Threads: "+timeouts);
 		  if(timeouts.get(peerOrigin)!=null){
@@ -654,9 +647,10 @@ private static void sendData(OutputPipe target, reqType req, byte[] input, Strin
 				  System.out.println("Nothing in Kill Thread to Remove");
 			  }
 			  System.out.println("THE SIZE OF TIMEOUTS MAP AFTER: "+timeouts.size());
-			 }else{
+		  }else{
 				  System.out.println("********************NO TIMEOUT THREAD FOUND FOR " + peerOrigin);
-			  }
+	      }
+		  }
 	  }else if(r==reqType.FILEINFOREQ){//we got a request for info on a file of ours
 		  //System.out.println("REQUEST 5, FILE NAME: "+fName);
 		  File f = new File(".\\temp\\"+fName+".ser");
@@ -691,16 +685,25 @@ private static void sendData(OutputPipe target, reqType req, byte[] input, Strin
 		  }
 		  f.delete();
 	  }else if(r==reqType.SORTREQ){//we got a sorted file list request from one of our peers
-		  //FNAME HAS THE SORT ENUM TYPE IN IT
-		  //METHOD IN GUI CONTROL SORTS THE LIST WITH A RETURN VALUE
-		  //GET THE RETURN VALUE AND PACKAGE IT LIKE A NORMAL FILE LIST WITH THE PROPER REQ TYPE
-		  //DONE
 		  int sType = Integer.valueOf(fName).intValue();
 		  //String newFLPacked = GUI_Control.packFiles(GUI_Control.sortFilesReturn(sortType.values()[sType]));
 		  //transmitUpdateFiles(newFLPacked, peers.get(resolver.get(peerOrigin)));
 	  }
       else if(r==reqType.DELETENOTIFICATION){ // notification that this peer has closed their connection - we have to remove them from the lists
     	  deletePeer(peerOrigin);
+      }else if(r==reqType.PEERCODE){
+    	  if(!peerCodes.containsKey(peerOrigin)){
+    		  System.out.println("ADDIND A PEER CODE: " + fName + " | " + peerOrigin);
+    		  peerCodes.put(peerOrigin, fName);
+    	  }
+      }else if(r==reqType.VALIDATEREQ){
+    	  sendData(peers.get(resolver.get(peerOrigin)), reqType.VALIDATERES, PeerCode.MyHashedCode().getBytes("ISO-8859-1"), "", false, "");
+      }else if(r==reqType.VALIDATERES){
+    	  if(fName.equals(peerCodes.get(peerOrigin))){
+    		  PopInformationMessage("Validation Results", "Peer is [VALIDATED]\nIdentified as original Peer Source");
+    	  }else{
+    		  PopInformationMessage("Validation Results", "Peer is [IN-VALIDATED]\nPeer is Unknown (Group may be Breached)");
+    	  }
       }
   }
   
@@ -715,12 +718,13 @@ private void deletePeer(String n){
 
   @Override
   public void outputPipeEvent(OutputPipeEvent arg0) {
-	if(pnames.contains(foundPeerN)){
-	OutputPipe newPipe = arg0.getOutputPipe();
-	System.out.println("PEER OUTPUT PIPE EVENT " + foundPeer);
-	peers.put(foundPeer, newPipe);
-	transmitUpdateFiles(foundPeerN,newPipe); // send our new peer our existing files!
-	JPFSPrinting.printNewPeer(foundPeerN);
+	if(!peers.containsKey(foundPeer)){
+		OutputPipe newPipe = arg0.getOutputPipe();
+		System.out.println("PEER OUTPUT PIPE EVENT " + foundPeer);
+		peers.put(foundPeer, newPipe);
+		transmitUpdateFiles(foundPeerN,newPipe); // send our new peer our existing files!
+		transmitMyPeerCode(newPipe);
+		JPFSPrinting.printNewPeer(foundPeerN);
 	}
 	
   }
@@ -859,13 +863,18 @@ private void deletePeer(String n){
 	  builtString += "Shared Files: " + GUI_Control.numFiles(pname) + "\n";
 	  builtString += "Output Pipe (Name): " + peers.get(resolver.get(pname)).getName() + "\n";
 	  builtString += "Output Pipe (Type): " + peers.get(resolver.get(pname)).getType() + "\n";
+	  builtString += "Validation Peer Code: " + peerCodes.get(pname) + "\n";
 	  if(!peers.get(resolver.get(pname)).isClosed()){
 		  builtString += "Connection Status: Active\n";
 	  }else{
 		  builtString += "Connection Status: Closed\n";
 	  }
 	  
-	  PopInformationMessage(pname + " Info", ""+builtString);
+	  //PopInformationMessage(pname + " Info", ""+builtString);
+	  int choice = PopCustomTwoButtons(pname + " Info", builtString, "Validate Peer", "Close");
+	  if(choice == 0){ // validation req
+		  sendData(peers.get(resolver.get(pname)), reqType.VALIDATEREQ, "".getBytes(), "", false, "");
+	  }
   }
   
   public void lookupFileInfo(String filename, String selectedPeer){

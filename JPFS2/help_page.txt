@@ -1,0 +1,27 @@
+JPFS-2 MANUAL V.1.0
+Nathan Hertner - 100894822
+
+
+1. Welcome
+
+Welcome to the JPFS-2 Manual. This manual is intended to aid you in the use of the JPFS-2 file sharing tool. 
+
+
+2. File Sharing to EVERYONE in your Peer Group
+
+3. File Sharing to ONE PEER in your Peer Group
+
+4. File Sharing to MULTIPLE PEERS in your Peer Group
+
+5. Un-Sharing Files
+
+6. Peer Information
+
+7. File Information
+
+8. File Sorting
+
+9. Downloading
+
+10. Editing File Sharing Permissions
+

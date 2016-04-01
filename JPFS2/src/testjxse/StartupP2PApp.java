@@ -8,25 +8,22 @@ import java.util.logging.Logger;
 
 import testjxse.JPFSPrinting.errorLevel;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
-
-//IDEA
-//create administrated p groups with admin priv. on the host
-//non admin cant start the group, just join
 
 public class StartupP2PApp extends Application{
 	
     static P2PManager info = new P2PManager();
     static StartupOptions op;
     public static Stage primaryStage;
+    public static boolean blockClientShutdown;
 	
 	public static final String AppName = "JPFS2";
 	
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws Exception{
 	  //disable logs from jxta, which overly clutter the console
 	  System.setProperty("net.jxta.logging.Logging", "OFF");
 	  System.setProperty("net.jxta.level", "OFF");
@@ -89,6 +86,7 @@ public class StartupP2PApp extends Application{
 	}
 	
 	public static void initMainStage() throws MalformedURLException, IOException{
+		Platform.setImplicitExit(true);
 		File mainGUI = new File("./MyGUI.fxml");
     	Pane page = (Pane) FXMLLoader.load(mainGUI.toURI().toURL());
     	@SuppressWarnings("unused")

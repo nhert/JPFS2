@@ -10,11 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import javax.swing.JOptionPane;
+
+import org.apache.commons.lang3.StringUtils;
 
 import testjxse.JPFSPrinting.errorLevel;
 import net.jxta.discovery.DiscoveryEvent;
@@ -44,6 +50,7 @@ public class StartupOptions implements DiscoveryListener{
 	static NetworkManager NetManager;
 	static PeerGroup global;
 	static Thread advChecker;
+	public Stage glistStage;
 	
 	StartupOptions(){
 		GroupsDiscovered = new ArrayList<String>();
@@ -55,46 +62,43 @@ public class StartupOptions implements DiscoveryListener{
 		public boolean pwordProtected;
 		public PeerGroupID pgid;
 		public String hashedPassword;
-		groupContents(String c, boolean pw, PeerGroupID id){
+		public String description;
+		groupContents(String c, boolean pw, PeerGroupID id, String desc){
 			creator = c;
 			pwordProtected = pw;
 			pgid = id;
+			description = desc;
 		}
-		groupContents(String c, boolean pw, PeerGroupID id, String hp){
+		groupContents(String c, boolean pw, PeerGroupID id, String desc, String hp){
 			creator = c;
 			pwordProtected = pw;
 			pgid = id;
 			hashedPassword = hp;
+			description = desc;
 		}
 	}
 	
-	public void StartOptions() throws Exception{
-		//TODO:
-		  //PASSWORD ENTRY OPTIONS FOR SOME GROUPS? PSE
-		  
-		  if(P2PManager.PopCustomTwoButtons(clientName, "Would you like to see Private Subgroup options or Simply Join the Global Peer Group?", 
-				  "Private Options", "Join Global") == 0){ // creation of private peer groups
+	public void StartOptions() throws Exception{  
+		  int choice = P2PManager.PopCustomTwoButtons(clientName, "Would you like to see Private Subgroup options or Simply Join the Global Peer Group?", 
+				  "Private Options", "Join Global");
+		  if(choice == 0){ // creation or joining of private peer groups
 			  System.out.println("Custom Group Creation Started");
 			  SubgroupOPs();
-			  
-		  }else{ // if they choose to not use a private group, they join the global peer group
-		      StartupP2PApp.StartMain();
+		  }else if(choice==1){// if they choose to not use a private group, they join the global peer group
+			  StartupP2PApp.StartMain();
+		  }else{ //closing window
+		      System.exit(0);
 		  }
 	}
 	
 	private void SubgroupOPs() throws Exception{
-		if(P2PManager.PopCustomTwoButtons(clientName, "Join an Existing Subgroup or Create One?", 
-				  "Join a Group", "Create a Group") == 0){ // join a group
-			
-			    /*theName = JOptionPane.showInputDialog("Name an Existing Group",null);
-			    if (!theName.equals("") && theName!=null)
-			    	break;
-			    System.out.println("Illegal Group Name, Please Retry");*/
-			
+		int choice = P2PManager.PopCustomTwoButtons(clientName, "Join an Existing Subgroup or Create One?", 
+				  "Join a Group", "Create a Group");
+		if(choice == 0){ // join a group	
 				gLister = new File("./GroupLister.fxml");
 				initGListStage();
 				
-				//join global group but dont publish yourself
+				//join global group but don't publish yourself
 				String tName = "temp_"+UUID.randomUUID().toString();
 				File ConfigurationFile = new File("./temp/"+tName); // setup the config file
 				NetManager = new NetworkManager(NetworkManager.ConfigMode.ADHOC, tName , ConfigurationFile.toURI());
@@ -110,26 +114,59 @@ public class StartupOptions implements DiscoveryListener{
 				advChecker.start();
 				gloop = new Thread(new GroupLoop());
 				gloop.start();
-		}else{
-			String newGroupName = JOptionPane.showInputDialog("Input a Group Name", null);
-			newGroupName += "_"+UUID.randomUUID().toString().substring(0, 8);
-			System.out.println("Creating Group: " + newGroupName);
-			
-			String descrip = JOptionPane.showInputDialog("Input a Small Description of Group", null);
-			
-			int yesno = JOptionPane.showConfirmDialog(null, "Would you like to set a password?");
-			System.out.println("yesno: "+yesno);
-			String pword;
-			if(yesno == 0){
-				System.out.println("Creating Password Protected Group");
-				pword = JOptionPane.showInputDialog(null, "Input a Password: ");
-				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, true, pword);
-			}else{
-				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, false, "");
+		}else if(choice == 1){//create a group
+			String newGroupName = "";
+			while(true){
+				newGroupName = JOptionPane.showInputDialog("Input a Group Name \n(14 Characters Max | Alphanumeric)", null);
+				if(newGroupName == null){
+					StartOptions();
+					return;
+				}else if(newGroupName.length() > 14 || !StringUtils.isAlphanumericSpace(newGroupName)){
+					continue;
+				}else if(!newGroupName.isEmpty()){
+					break;
+				}
 			}
 			
+			newGroupName += "_"+UUID.randomUUID().toString().substring(0, 8);
 			
+			String descrip = "";
+			while(true){
+				descrip = JOptionPane.showInputDialog("Input a Small Description of Group \n(Alphanumeric)", null);
+				if(descrip == null){
+					StartOptions();
+					return;
+				}else if(!StringUtils.isAlphanumericSpace(descrip)){
+					continue;
+				}else if(!descrip.isEmpty()){
+					break;
+				}
+			}
 			
+			int yesno = JOptionPane.showConfirmDialog(null, "Would you Like to Use a Password?");
+			String pword = "";
+			if(yesno == 0){
+				while(true){
+					pword = JOptionPane.showInputDialog(null, "Input a Password \n(16 Characters Max | Alphanumeric | No Spaces)");
+					if(pword == null){
+						StartOptions();
+						return;
+					}else if(!StringUtils.isAlphanumeric(pword) || pword.length() > 16){
+						continue;
+					}else if(!pword.isEmpty()){
+						break;
+					}
+				}
+				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, true, pword);
+			}else if(yesno==1){
+				StartupP2PApp.StartMainCustom(newGroupName, true, descrip, false, "");
+			}else{//go back
+				StartOptions();
+				return;
+			}
+		}else{//go back
+			StartOptions();
+			return;
 		}
 		
 		
@@ -151,17 +188,18 @@ public class StartupOptions implements DiscoveryListener{
 	                  PeerGroupAdvertisement pga = (PeerGroupAdvertisement)ad;
 	                  String gname = pga.getDescription().split("&%")[0];
 	                  String creator = pga.getDescription().split("&%")[1];
-	                  boolean pwordUsed = Boolean.parseBoolean(pga.getDescription().split("&%")[2]);
+	                  String desc = pga.getDescription().split("&%")[2];
+	                  boolean pwordUsed = Boolean.parseBoolean(pga.getDescription().split("&%")[3]);
 	                  if(pwordUsed){
-	                	  String hashedPassword = pga.getDescription().split("&%")[3];
+	                	  String hashedPassword = pga.getDescription().split("&%")[4];
 	                	  if(!GroupsDiscovered.contains(gname)){
 		                	  GroupsDiscovered.add(gname);
-		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), hashedPassword));
+		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc, hashedPassword));
 		                  }
 	                  }else{
 	                	  if(!GroupsDiscovered.contains(gname)){
 		                	  GroupsDiscovered.add(gname);
-		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID()));
+		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc));
 		                  }
 	                  }
 	                 
@@ -180,10 +218,25 @@ public class StartupOptions implements DiscoveryListener{
 		@SuppressWarnings("unused")
 		GUI_Control_GroupListerHelper GUICGLH = new GUI_Control_GroupListerHelper (page);
 		Scene scene = new Scene(page);
-        StartupP2PApp.primaryStage.setScene(scene);
-        StartupP2PApp.primaryStage.setTitle("Group Lister - JPFS2");
-        StartupP2PApp.primaryStage.setResizable(false);
-        StartupP2PApp.primaryStage.show();
+		
+		glistStage = new Stage();
+		
+		glistStage.setScene(scene);
+		glistStage.setTitle("Group Lister - JPFS2");
+		glistStage.setResizable(false);
+		glistStage.show();
+		Platform.setImplicitExit(false);
+		glistStage.setOnCloseRequest(new EventHandler<WindowEvent>(){
+        	public void handle(WindowEvent we){
+        		try {
+        			we.consume();
+        			glistStage.hide();
+        			StartOptions();
+				} catch (Exception e) {
+					JPFSPrinting.logError("Error Closing Group Lister Window", errorLevel.RECOVERABLE);
+				}
+        	}
+        });
 	}
 	 
 	
@@ -205,7 +258,6 @@ public class StartupOptions implements DiscoveryListener{
 	 private static class fetch_advertisements implements Runnable{
 	         public void run() {
 	            while(true) {
-	            	//System.out.println("SEARCHING!! ...");
 	            	try{
 	            	if(discovery != null){
 	                  discovery.getRemoteAdvertisements(null, DiscoveryService.GROUP, "Name", "GroupADV", 1, null);
@@ -223,7 +275,7 @@ public class StartupOptions implements DiscoveryListener{
 	            	}
 	            }
 	         }
-	   }
+	}
 	  
 	@SuppressWarnings("deprecation")
 	public void cleanup(){

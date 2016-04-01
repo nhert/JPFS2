@@ -39,46 +39,30 @@ public class GUI_Control_GroupLister implements Initializable{
 	        		@Override
 	        		public void handle(MouseEvent click){
 	        			if(click.getClickCount() == 2){
+	        				//open the subdialog
 	        				String selGroup = GroupList.getSelectionModel().getSelectedItem();
-	        				System.out.println("A GROUP WAS SELECTED " + selGroup);
 	        				groupContents gc = StartupOptions.GroupInfos.get(selGroup);
+	        				String builtStr = "";
 	        				if(gc.pwordProtected){
-	        					String hashedPassword = gc.hashedPassword;
-	        					System.out.println("Joining a Password Protected Group");
-	        					String prelimString = "This Group Has a Password, Enter It Now: ";
-	        					boolean correctPassword;
-	        					while(true){
-	        						String pAttempt = JOptionPane.showInputDialog(prelimString, null);
-	        						if(HashingUtil.verifyPassword(pAttempt.toCharArray(), hashedPassword)){
-	        							System.out.println("Password Verified");
-	        							correctPassword = true;
-	        							break;
-	        						}else{
-	        							prelimString = "Password was Incorrect, Please Try Again: ";
-	        						}
-	        					}
-	        					if(correctPassword){
-	        						try {
-	        							StartupP2PApp.primaryStage.hide();
-	    	        					StartupP2PApp.op.cleanup();
-	    								StartupP2PApp.StartMainCustom(GroupList.getSelectionModel().getSelectedItem(), false, "", false, "");
-	    							} catch (IOException e) {
-	    								JPFSPrinting.logError("IO Exception: GroupLister Control handle list method", errorLevel.RECOVERABLE);
-	    							}
-	        					}
-	        					
+	        					builtStr+= "Password Protected: [YES]\n";
 	        				}else{
-	        				System.out.println("Non-Password Group");
-	        				try {
-	        					StartupP2PApp.op.cleanup();
-								StartupP2PApp.StartMainCustom(GroupList.getSelectionModel().getSelectedItem(), false, "", false, "");
-							} catch (IOException e) {
-								JPFSPrinting.logError("IO Exception: GroupLister Control handle list method", errorLevel.RECOVERABLE);
-							}
+	        					builtStr+= "Password Protected: [NO]\n";
 	        				}
+	        				
+	        				builtStr+="Creator: "+gc.creator+"\n";
+	        				builtStr+="Description: "+gc.description;
+	        				
+	        				int choice = P2PManager.PopCustomTwoButtons("Group Info", builtStr, 
+	        						  "Join", "Cancel");
+	        				if(choice == 0){
+	        					doJoin(gc);
+	        				}
+	        				
 	        			}
 	        		}
 	        	});
+	        	
+	        	
 	}
 	
 	public static void doRefresh(){
@@ -86,6 +70,47 @@ public class GUI_Control_GroupLister implements Initializable{
 			GUI_Control_GroupListerHelper.doRefresh();
 		});
 	}
+	
+    public void doJoin(groupContents gc){
+		if(gc.pwordProtected){
+			String hashedPassword = gc.hashedPassword;
+			String prelimString = "This Group Has a Password, Enter It Now: ";
+			boolean correctPassword = false;
+			while(true){
+				String pAttempt = JOptionPane.showInputDialog(prelimString, null);
+				if(pAttempt == null){
+					break;
+				}else if(pAttempt.isEmpty()){
+					prelimString = "Password was Empty, Please Try Again: ";
+					continue;
+				}
+				if(HashingUtil.verifyPassword(pAttempt.toCharArray(), hashedPassword)){
+					correctPassword = true;
+					break;
+				}else{
+					prelimString = "Password was Incorrect, Please Try Again: ";
+				}
+			}
+			if(correctPassword){
+				try {
+					StartupP2PApp.op.glistStage.hide();
+					StartupP2PApp.op.cleanup();
+					StartupP2PApp.StartMainCustom(GroupList.getSelectionModel().getSelectedItem(), false, "", false, "");
+				} catch (IOException e) {
+					JPFSPrinting.logError("IO Exception: GroupLister Control handle list method", errorLevel.RECOVERABLE);
+				}
+			}
+			
+		}else{
+			try {
+				StartupP2PApp.op.glistStage.hide();
+				StartupP2PApp.op.cleanup();
+				StartupP2PApp.StartMainCustom(GroupList.getSelectionModel().getSelectedItem(), false, "", false, "");
+			} catch (IOException e) {
+				JPFSPrinting.logError("IO Exception: GroupLister Control handle list method", errorLevel.RECOVERABLE);
+			}
+		}
+    }
 	
 
 }
