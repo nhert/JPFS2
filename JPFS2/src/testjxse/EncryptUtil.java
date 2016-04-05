@@ -15,11 +15,8 @@ public class EncryptUtil {
 			IvParameterSpec ivPS = new IvParameterSpec(vector.getBytes("UTF-8"));
 			SecretKeySpec keyS = new SecretKeySpec(ckey.getBytes("UTF-8"), "AES");
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-			cipher.init(Cipher.ENCRYPT_MODE, keyS, ivPS);
-			
+			cipher.init(Cipher.ENCRYPT_MODE, keyS, ivPS);			
 			byte[] encryptedValue = cipher.doFinal(input);
-			//System.out.println("JPFS2 - EncryptUtil - Original Data: " + new String (input));
-			//System.out.println("JPFS2 - EncryptUtil - Encrypted String: " + Base64.encodeBase64String(encryptedValue));
 			return Base64.encodeBase64(encryptedValue);
 		}catch (Exception ex){
 			JPFSPrinting.logError("General Exception: EncryptUtil encryption method", errorLevel.RECOVERABLE);

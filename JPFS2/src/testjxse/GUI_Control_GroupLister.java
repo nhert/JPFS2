@@ -5,9 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import javax.swing.JOptionPane;
-
 import testjxse.JPFSPrinting.errorLevel;
 import testjxse.StartupOptions.groupContents;
 import javafx.application.Platform;
@@ -19,6 +17,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.MouseEvent;
+import junit.framework.Assert;
 
 public class GUI_Control_GroupLister implements Initializable{
 	
@@ -29,38 +28,38 @@ public class GUI_Control_GroupLister implements Initializable{
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		 assert GroupList != null : "fx:id=\"GroupList\" was not injected: check your FXML file 'GroupLister.fxml'.";
+		 Assert.assertNotNull(GroupList);
 		 List<String> GroupBackend = new ArrayList<String>();
 		 groups = FXCollections.observableList(GroupBackend);
 		 GroupList.setItems(groups);
 		 GroupList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		 
-	        	GroupList.setOnMouseClicked(new EventHandler<MouseEvent>(){
-	        		@Override
-	        		public void handle(MouseEvent click){
-	        			if(click.getClickCount() == 2){
-	        				//open the subdialog
-	        				String selGroup = GroupList.getSelectionModel().getSelectedItem();
-	        				groupContents gc = StartupOptions.GroupInfos.get(selGroup);
-	        				String builtStr = "";
-	        				if(gc.pwordProtected){
-	        					builtStr+= "Password Protected: [YES]\n";
-	        				}else{
-	        					builtStr+= "Password Protected: [NO]\n";
-	        				}
+	     GroupList.setOnMouseClicked(new EventHandler<MouseEvent>(){
+	    	 @Override
+	    	 public void handle(MouseEvent click){
+	    		 if(click.getClickCount() == 2){
+	    			 //open the subdialog
+	    			 String selGroup = GroupList.getSelectionModel().getSelectedItem();
+	    			 groupContents gc = StartupOptions.GroupInfos.get(selGroup);
+	    			 String builtStr = "";
+	    			 if(gc.pwordProtected){
+	    				 builtStr+= "Password Protected: [YES]\n";
+	    			 }else{
+	    				 builtStr+= "Password Protected: [NO]\n";
+	    			 }
 	        				
-	        				builtStr+="Creator: "+gc.creator+"\n";
-	        				builtStr+="Description: "+gc.description;
+	    			 builtStr+="Creator: "+gc.creator+"\n";
+	    			 builtStr+="Description: "+gc.description;
 	        				
-	        				int choice = P2PManager.PopCustomTwoButtons("Group Info", builtStr, 
-	        						  "Join", "Cancel");
-	        				if(choice == 0){
-	        					doJoin(gc);
-	        				}
+	    			 int choice = P2PManager.PopCustomTwoButtons("Group Info", builtStr, 
+	    					 "Join", "Cancel");
+	    			 if(choice == 0){
+	    				 doJoin(gc);
+	    			 }
 	        				
-	        			}
-	        		}
-	        	});
+	    		 }
+	    	 }
+	    });
 	        	
 	        	
 	}
@@ -71,6 +70,7 @@ public class GUI_Control_GroupLister implements Initializable{
 		});
 	}
 	
+	//join a subgroup
     public void doJoin(groupContents gc){
 		if(gc.pwordProtected){
 			String hashedPassword = gc.hashedPassword;

@@ -11,6 +11,7 @@ import javax.crypto.spec.PBEKeySpec;
 public class HashingUtil {
 	private static byte[] salt = "ZJE7TN5HD81JE895".getBytes(); // unique random salt value for JPFS client. all clients share salt value
 	
+	//hash a string with the JPFS salt
 	public static String hash(char[] input){
 		KeySpec spec = new PBEKeySpec(input, salt, 65536, 128);
 		try {
@@ -25,11 +26,13 @@ public class HashingUtil {
 		return null;
 	}
 	
+	//verify input matches a hashed password
 	public static boolean verifyPassword(char[] attempt, String hashedPassword){
 		String newHash = hash(attempt);
 		return newHash.equals(hashedPassword);
 	}
 	
+	//test the hashing utility
 	public static void main(String[] args){
 		String p = "password1";
 		String origHash = hash(p.toCharArray());

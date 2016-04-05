@@ -3,25 +3,70 @@ Nathan Hertner - 100894822
 
 
 1. Welcome
-
-Welcome to the JPFS-2 Manual. This manual is intended to aid you in the use of the JPFS-2 file sharing tool. 
-
+	-Welcome to the JPFS-2 Manual. This manual is intended to aid you in the use of the JPFS-2 file sharing tool. 
 
 2. File Sharing to EVERYONE in your Peer Group
+	-In the Peer List, select your own name or nothing. (Note: if you select yourself along with anything else, you automatically share to everyone)
+	-Press the SHARE button
+	-Select the file you would like to share through the JFile Chooser
+	-The file is now shared with every peer you encounter
 
 3. File Sharing to ONE PEER in your Peer Group
+	-In the Peer List, select a single peer other than yourself. (Note: if you select yourself along with anything else, you automatically share to everyone)
+	-Press the SHARE button
+	-Select the file you would like to share through the JFile Chooser
+	-The file is now shared with the peer you selected, only they will see it in your file listing
 
 4. File Sharing to MULTIPLE PEERS in your Peer Group
+	-In the Peer List, hold CTRL and select multiple peers. (Note: if you select yourself along with anything else, you automatically share to everyone)
+	-Press the SHARE button
+	-Select the file you would like to share through the JFile Chooser
+	-The file is now shared with the peers you selected, only they will see it in your file listing
 
 5. Un-Sharing Files
+	-Select your name in the Peer List to display your shared files
+	-In the File List, select the file you would like to un-share
+	-Press the UN-SHARE button
+	-This file will no longer be shared, and peers that have permissions to download it will have it removed from the file listing. 
+	-(Note: peers who have already downloaded the file will not have it removed from their machine)
 
 6. Peer Information
+	-In the Peer List, double-click on a peer
+	-Advanced information about this peer will be displayed
+	-Press 'CLOSE' to close the dialog
 
 7. File Information
+	-In the File List, double-click on a file 
+	-Advanced information about this file will be displayed
+	-Press 'OK' to close the dialog
 
-8. File Sorting
+8. File Sorting Your Own Files
+	-In the Peer List, select your own name
+	-In the drop-down menu above the File List, select a sorting mode. (Note: all sorting modes are ascending)
+
+9. File Sorting Another Peer's Files
+	-In the Peer List, select the other peers name
+	-In the drop-down menu above their File List, select a sorting mode. (Please allow a second before sorting to another type after doing this)
 
 9. Downloading
+	-In the Peer List, select a single peer other than yourself
+	-In the File List, select a file they have shared with you that you would like to obtain
+	-Press the DOWNLOAD button
+	-Wait for the download to transfer (For larger files (50+MB) this may take a short time)
+	-When the download is complete, a dialog will show 
+	-Read dialog to assure that the file sender was verified, and that the file's checksum passed
+	-Press 'OK' to confirm the details
+	-If the verification or checksum was invalid, you will have to re-download the file
+	-Downloaded file will be stored in the 'JPFSDownloads' Directory in the running directory of JPFS-2
 
 10. Editing File Sharing Permissions
+	-File permissions can only be edited by re-sharing the file
+	-First, un-share the file
+	-Then, share the file again with new peers selected for permissions (Note: peers who have already downloaded the file will not have it removed from their machine)
+
+11. Validating Peers
+	-In the Peer List, double click on a peer other than yourself
+	-In the advanced info dialog, click the VALIDATE button
+	-Wait for a resultant dialog with results to appear
+	-Press 'OK' to close this dialog
 

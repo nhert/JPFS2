@@ -12,7 +12,7 @@ import testjxse.JPFSPrinting.errorLevel;
 
 public class SigningUtil {
 	
-	
+	//sign an input file with the clients digital signature using SHA1 and DSA algorithms
 	public static SignedContents signData(byte[] input){
 		byte[] signed;
 		try {
@@ -35,6 +35,7 @@ public class SigningUtil {
 		return null;
 	}
 	
+	//verify a signature
 	public static boolean verifySignature(byte[] sign, byte[] data, PublicKey pk) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException{
 		Signature s = Signature.getInstance("SHA1WithDSA");
 		s.initVerify(pk);
@@ -42,6 +43,7 @@ public class SigningUtil {
 		return s.verify(sign);
 	}
 	
+	//test the signing util class
 	public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException{
 		byte[] orig = "HELLO".getBytes();
 		SignedContents signed = signData(orig);
@@ -53,6 +55,7 @@ public class SigningUtil {
 		}
 	}
 	
+	//helper class for storing signing information
 	public static class SignedContents{
 		public PublicKey pk;
 		public byte[] signature;

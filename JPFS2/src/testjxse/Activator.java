@@ -3,6 +3,8 @@ package testjxse;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+//plugin shell for JPFS-2
+
 public class Activator implements BundleActivator {
 
 	private static BundleContext context;

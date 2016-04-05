@@ -2,14 +2,13 @@ package testjxse;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.io.*;
 
 public class JPFSFile implements java.io.Serializable{
+	private static final long serialVersionUID = 1L;
 	public String name;
 	public String strLitName;
 	public transient String path;

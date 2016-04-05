@@ -1,7 +1,5 @@
 package testjxse;
 
-import java.util.logging.Level;
-
 import testjxse.P2PManager.reqType;
 
 public class JPFSPrinting {

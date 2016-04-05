@@ -2,12 +2,10 @@ package testjxse;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import testjxse.JPFSPrinting.errorLevel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 

@@ -6,7 +6,7 @@ Communication Between 2 or More Computers Requires:
   -[2+] Computers to run the program and communicate with eachother over the adhoc network
 
 Communication on a Single Local Host Requires:
-  -1 Windows Computers (W7 or later)
+  -1 Windows Computer (W7 or later)
 
 System Compatibility:
   -JPFS-2 is designed-on and built for the Windows OS. It has not been tested on Linux or MAC OS.
@@ -17,7 +17,7 @@ Setting up Communications for 2 or More Computers:
   Setting up the AdHoc Access Point
   -On the computer acting as the wireless access point, navigate to the JPFS install folder
   -Select the "adhoc_start.bat" file and run as Administrator
-  -Press 'OK' to exit script
+  -Press any key to exit script
   -This computer will now broadcast an adhoc wireless network 
 	with the SSID: "JPFS_AdHoc" and Password "12345678"
 
@@ -31,6 +31,7 @@ Setting up Communications for 2 or More Computers:
   -When you are finished operating JPFS, you can exit the program on the Communicating Computers
   -Computers can now disconnect from the "JPFS_AdHoc" network
   -On the Access Point Computer, select the "adhoc_stop.bat" file and run as Administrator
+  -Press any key to exit script
   -The AdHoc network is now no longer being hosted on the Access Point Computer
 
 

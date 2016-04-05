@@ -173,40 +173,38 @@ public class StartupOptions implements DiscoveryListener{
 		
 	}
 	
-	  public void discoveryEvent(DiscoveryEvent TheDiscoveryEvent) {
-	      DiscoveryResponseMsg TheDiscoveryResponseMsg = TheDiscoveryEvent.getResponse();
-	      Enumeration<Advertisement> en = TheDiscoveryResponseMsg.getAdvertisements();
-	      Object theGroup = TheDiscoveryEvent.getSource();
+	public void discoveryEvent(DiscoveryEvent TheDiscoveryEvent) {
+		DiscoveryResponseMsg TheDiscoveryResponseMsg = TheDiscoveryEvent.getResponse();
+	    Enumeration<Advertisement> en = TheDiscoveryResponseMsg.getAdvertisements();
 	      
-	      
-	      //if the peer isn't discovered already
-	      if (en!=null) { 
-	          while (en.hasMoreElements()) {
-	        	  try{
-	        	  Advertisement ad = en.nextElement();
+	    //if the peer isn't discovered already
+	    if (en!=null) { 
+	    	while (en.hasMoreElements()) {
+	    		try{
+	         	  Advertisement ad = en.nextElement();
 	        	  if(ad.getAdvType() == PeerGroupAdvertisement.getAdvertisementType()){
-	                  PeerGroupAdvertisement pga = (PeerGroupAdvertisement)ad;
-	                  String gname = pga.getDescription().split("&%")[0];
-	                  String creator = pga.getDescription().split("&%")[1];
-	                  String desc = pga.getDescription().split("&%")[2];
-	                  boolean pwordUsed = Boolean.parseBoolean(pga.getDescription().split("&%")[3]);
-	                  if(pwordUsed){
-	                	  String hashedPassword = pga.getDescription().split("&%")[4];
-	                	  if(!GroupsDiscovered.contains(gname)){
-		                	  GroupsDiscovered.add(gname);
-		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc, hashedPassword));
-		                  }
-	                  }else{
-	                	  if(!GroupsDiscovered.contains(gname)){
-		                	  GroupsDiscovered.add(gname);
-		                	  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc));
-		                  }
-	                  }
+	        		  PeerGroupAdvertisement pga = (PeerGroupAdvertisement)ad;
+	        		  String gname = pga.getDescription().split("&%")[0];
+	        		  String creator = pga.getDescription().split("&%")[1];
+	        		  String desc = pga.getDescription().split("&%")[2];
+	        		  boolean pwordUsed = Boolean.parseBoolean(pga.getDescription().split("&%")[3]);
+	        		  if(pwordUsed){
+	        			  String hashedPassword = pga.getDescription().split("&%")[4];
+	        			  if(!GroupsDiscovered.contains(gname)){
+	        				  GroupsDiscovered.add(gname);
+	        				  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc, hashedPassword));
+	        			  }
+	        		  }else{
+	        			  if(!GroupsDiscovered.contains(gname)){
+	        				  GroupsDiscovered.add(gname);
+	        				  GroupInfos.put(gname, new groupContents(creator, pwordUsed, pga.getPeerGroupID(), desc));
+	        			  }
+	        		  }
 	                 
 	        	  }
-	        	  }catch(Throwable a){
-	        		  JPFSPrinting.logError("Throwable Error in the StartupOptions discovery thread", errorLevel.RECOVERABLE);
-	        	  }
+	    		}catch(Throwable a){
+	    			JPFSPrinting.logError("Throwable Error in the StartupOptions discovery thread", errorLevel.RECOVERABLE);
+	    		}
 	          }
 	      }
 	  }
@@ -227,7 +225,7 @@ public class StartupOptions implements DiscoveryListener{
 		glistStage.show();
 		Platform.setImplicitExit(false);
 		glistStage.setOnCloseRequest(new EventHandler<WindowEvent>(){
-        	public void handle(WindowEvent we){
+			public void handle(WindowEvent we){
         		try {
         			we.consume();
         			glistStage.hide();
@@ -254,12 +252,12 @@ public class StartupOptions implements DiscoveryListener{
 	
 	}
 	
-	  //light thread which loops for advertisements
-	 private static class fetch_advertisements implements Runnable{
-	         public void run() {
-	            while(true) {
-	            	try{
-	            	if(discovery != null){
+	//light thread which loops for advertisements
+	private static class fetch_advertisements implements Runnable{
+		public void run() {
+			while(true) {
+				try{
+					if(discovery != null){
 	                  discovery.getRemoteAdvertisements(null, DiscoveryService.GROUP, "Name", "GroupADV", 1, null);
 	            	}
 	            	else
@@ -267,14 +265,13 @@ public class StartupOptions implements DiscoveryListener{
 	            	
 	                Thread.sleep(500);
 	              
-	            	} catch(InterruptedException e) {
-	            		JPFSPrinting.logError("Sleep method interrupted in StartupOptions fetch advertisements Thread", errorLevel.CAN_IGNORE);
-	            	} 
-	                catch(IllegalStateException e) {
-	                	JPFSPrinting.logError("Discovery was not properly intialized in StartupOptions", errorLevel.RECOVERABLE);
-	            	}
-	            }
-	         }
+	            } catch(InterruptedException e) {
+	           		JPFSPrinting.logError("Sleep method interrupted in StartupOptions fetch advertisements Thread", errorLevel.CAN_IGNORE);
+	           	} catch(IllegalStateException e) {
+	              	JPFSPrinting.logError("Discovery was not properly intialized in StartupOptions", errorLevel.RECOVERABLE);
+	           	}
+			}
+	    }
 	}
 	  
 	@SuppressWarnings("deprecation")
